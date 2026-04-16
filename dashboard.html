@@ -5,203 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>대시보드</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f2f5;
-            min-height: 100vh;
-        }
-
-        .navbar {
-            background-color: #2c3e50;
-            padding: 16px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar-title {
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .navbar-user {
-            color: #ccc;
-            font-size: 14px;
-        }
-        .logout-btn {
-            padding: 8px 16px;
-            background-color: #e53935;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .logout-btn:hover {
-            background-color: #c62828;
-        }
-
-        .container {
-            padding: 40px 30px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        .welcome-text {
-            font-size: 22px;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-weight: bold;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        .card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 30px 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-        }
-        .card-icon {
-            font-size: 42px;
-            margin-bottom: 14px;
-        }
-        .card-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 6px;
-        }
-        .card-desc {
-            font-size: 12px;
-            color: #999;
-        }
-
-        .card.add-card {
-            border: 2px dashed #ccc;
-            background-color: transparent;
-            box-shadow: none;
-        }
-        .card.add-card:hover {
-            border-color: #4caf50;
-            background-color: #f9fff9;
-        }
-        .card.add-card .card-icon {
-            color: #ccc;
-        }
-        .card.add-card .card-title {
-            color: #aaa;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; min-height: 100vh; visibility: hidden; }
+        .navbar { background-color: #2c3e50; padding: 16px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar-title { color: white; font-size: 20px; font-weight: bold; }
+        .navbar-right { display: flex; align-items: center; gap: 16px; }
+        .navbar-user { color: #ccc; font-size: 14px; }
+        .logout-btn { padding: 8px 16px; background-color: #e53935; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .logout-btn:hover { background-color: #c62828; }
+        .container { padding: 40px 30px; max-width: 1000px; margin: 0 auto; }
+        .welcome-text { font-size: 22px; color: #2c3e50; margin-bottom: 30px; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .card { background-color: white; border-radius: 12px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit; display: block; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+        .card-icon { font-size: 42px; margin-bottom: 14px; }
+        .card-title { font-size: 15px; font-weight: bold; color: #2c3e50; margin-bottom: 6px; }
+        .card-desc { font-size: 12px; color: #999; }
+        .card.add-card { border: 2px dashed #ccc; background-color: transparent; box-shadow: none; }
+        .card.add-card:hover { border-color: #4caf50; background-color: #f9fff9; }
+        .card.add-card .card-title { color: #aaa; }
     </style>
 </head>
 <body>
-
-    <div class="navbar">
-        <div class="navbar-title">🛠️ 내 도구 모음</div>
-        <div class="navbar-right">
-            <span class="navbar-user" id="welcomeMsg"></span>
-            <button class="logout-btn" onclick="logout()">로그아웃</button>
-        </div>
+<div class="navbar">
+    <div class="navbar-title">🛠️ 내 도구 모음</div>
+    <div class="navbar-right">
+        <span class="navbar-user" id="welcomeMsg"></span>
+        <button class="logout-btn" onclick="logout()">로그아웃</button>
     </div>
+</div>
 
-    <div class="container">
-        <div class="welcome-text" id="welcomeText"></div>
-
-        <div class="grid" id="toolGrid">
-
-            <a class="card" href="index.html">
-                <div class="card-icon">📧</div>
-                <div class="card-title">글자 추출기</div>
-                <div class="card-desc">이미지에서 언어를 자동으로 추출합니다</div>
-            </a>
-
-            <a class="card" href="새도구.html">
-                <div class="card-icon">🔍</div>
-                <div class="card-title">글자 선명화 도구</div>
-                <div class="card-desc">이미지의 글자를 선명하게 보정합니다</div>
-            </a>
-            <!-- ✅ 가계부 카드 추가 -->
-            <a class="card" href="household.html">
-                <div class="card-icon">💰</div>
-                <div class="card-title">가계부</div>
-                <div class="card-desc">수입·지출을 캘린더로 한눈에 관리합니다</div>
-            </a>
-            <a class="card" href="https://www.sooplive.com" target="_blank">
-                <div class="card-icon">
-                    <img src="https://i.namu.wiki/i/MIkUYfZGga7v7htEsLGvdxg-YdIfHPH0auxjWlzS2hwoqG7JFmIxUaOb45QM_RbiDsKiCBJuP-wnT3mGesaheq5w9Dd7GhiB3KYCry4Zj8zndmXm8pgFXXsJMqCeyFBf_KNLdGEKyiamhL3QcvpvjA.svg" style="width:48px; height:48px; object-fit:contain;">
-                </div>
-                <div class="card-title">SOOP 라이브</div>
-                <div class="card-desc">sooplive.com 바로가기</div>
-            </a>
-
-            <a class="card" href="https://www.fmkorea.com/afreecatv" target="_blank">
-                <div class="card-icon">
-                    <img src="https://i.namu.wiki/i/LB92NXwGjlSHoO37HxABgctRwBKIA3-Zq6Rnu1WeGgz37DOglOuC5O667spQpnDAQMJVyvxFlOkzftmfex8Buw.svg" style="width:48px; height:48px; object-fit:contain;">
-                </div>
-                <div class="card-title">FM코리아 아프리카TV</div>
-                <div class="card-desc">fmkorea.com/afreecatv 바로가기</div>
-            </a>
-
-            <a class="card" href="soop_favorites.html">
-                <div class="card-icon">🎮</div>
-                <div class="card-title">SOOP 즐겨찾기</div>
-                <div class="card-desc">즐겨찾는 스트리머 바로가기</div>
-            </a>
-
-            <a class="card" href="admin.html">
-                <div class="card-icon">🔐</div>
-                <div class="card-title">관리자 페이지</div>
-                <div class="card-desc">회원 관리 및 계정 설정</div>
-            </a>
-
-
-
-            <div class="card add-card">
-                <div class="card-icon">➕</div>
-                <div class="card-title">도구 추가 예정</div>
-                <div class="card-desc"></div>
+<div class="container">
+    <div class="welcome-text" id="welcomeText"></div>
+    <div class="grid">
+        <a class="card" href="index.html">
+            <div class="card-icon">📧</div>
+            <div class="card-title">이메일 추출기</div>
+            <div class="card-desc">이미지에서 이메일 주소를 자동으로 추출합니다</div>
+        </a>
+        <a class="card" href="새도구.html">
+            <div class="card-icon">🔍</div>
+            <div class="card-title">글자 선명화 도구</div>
+            <div class="card-desc">이미지의 글자를 선명하게 보정합니다</div>
+        </a>
+        <a class="card" href="https://www.sooplive.com" target="_blank">
+            <div class="card-icon">
+                <img src="https://i.namu.wiki/i/MIkUYfZGga7v7htEsLGvdxg-YdIfHPH0auxjWlzS2hwoqG7JFmIxUaOb45QM_RbiDsKiCBJuP-wnT3mGesaheq5w9Dd7GhiB3KYCry4Zj8zndmXm8pgFXXsJMqCeyFBf_KNLdGEKyiamhL3QcvpvjA.svg" style="width:48px;height:48px;object-fit:contain;">
             </div>
-
+            <div class="card-title">SOOP 라이브</div>
+            <div class="card-desc">sooplive.com 바로가기</div>
+        </a>
+        <a class="card" href="https://www.fmkorea.com/afreecatv" target="_blank">
+            <div class="card-icon">
+                <img src="https://i.namu.wiki/i/LB92NXwGjlSHoO37HxABgctRwBKIA3-Zq6Rnu1WeGgz37DOglOuC5O667spQpnDAQMJVyvxFlOkzftmfex8Buw.svg" style="width:48px;height:48px;object-fit:contain;">
+            </div>
+            <div class="card-title">FM코리아 아프리카TV</div>
+            <div class="card-desc">fmkorea.com/afreecatv 바로가기</div>
+        </a>
+        <a class="card" href="soop_favorites.html">
+            <div class="card-icon">🎮</div>
+            <div class="card-title">SOOP 즐겨찾기</div>
+            <div class="card-desc">즐겨찾는 스트리머 바로가기</div>
+        </a>
+        <a class="card" href="admin.html">
+            <div class="card-icon">🔐</div>
+            <div class="card-title">관리자 페이지</div>
+            <div class="card-desc">회원 관리 및 계정 설정</div>
+        </a>
+        <a class="card" href="household.html">
+            <div class="card-icon">💰</div>
+            <div class="card-title">가계부</div>
+            <div class="card-desc">수입·지출을 캘린더로 한눈에 관리합니다</div>
+        </a>
+        <div class="card add-card">
+            <div class="card-icon">➕</div>
+            <div class="card-title">도구 추가 예정</div>
+            <div class="card-desc"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        window.addEventListener('DOMContentLoaded', function () {
-            const user = localStorage.getItem('loggedInUser');
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-            document.getElementById('welcomeMsg').innerText = `👋 ${user}님`;
-            document.getElementById('welcomeText').innerText = `${user}님, 안녕하세요! 사용할 도구를 선택하세요.`;
-        });
+<script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-        function logout() {
-            localStorage.removeItem('loggedInUser');
+    // 로그인 확인 전까지 화면 숨김
+    document.body.style.visibility = 'hidden';
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
             window.location.href = 'login.html';
+            return;
         }
-    </script>
+        // 로그인 확인되면 화면 표시
+        document.body.style.visibility = 'visible';
+        document.getElementById('welcomeMsg').textContent = `👋 ${user.email}님`;
+        document.getElementById('welcomeText').textContent = `${user.email}님, 안녕하세요! 사용할 도구를 선택하세요.`;
+    });
 
+    window.logout = async function() {
+        await signOut(auth);
+        window.location.href = 'login.html';
+    }
+</script>
 </body>
 </html>
