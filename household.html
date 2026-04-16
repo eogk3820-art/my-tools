@@ -43,8 +43,12 @@
         .input-row { display: flex; gap: 16px; flex-wrap: wrap; }
         .input-group { flex: 1; min-width: 200px; }
         .input-group label { font-size: 13px; color: #888; margin-bottom: 6px; display: block; }
-        .input-group input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background-color: #f9f9f9; color: #2c3e50; font-size: 14px; outline: none; }
-        .input-group input:focus { border-color: #4caf50; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 10px 14px; border-radius: 8px;
+            border: 1px solid #ddd; background-color: #f9f9f9;
+            color: #2c3e50; font-size: 14px; outline: none;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: #4caf50; }
         .input-memo { width: 100%; margin-top: 12px; }
         .input-memo input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background-color: #f9f9f9; color: #2c3e50; font-size: 14px; outline: none; }
         .input-memo input:focus { border-color: #4caf50; }
@@ -60,12 +64,20 @@
         .list-left { display: flex; align-items: center; gap: 12px; }
         .list-info .list-memo { font-size: 14px; font-weight: bold; color: #2c3e50; }
         .list-info .list-date { font-size: 12px; color: #999; margin-top: 2px; }
+        .list-info .list-bank { font-size: 12px; color: #3498db; margin-top: 2px; }
         .list-amount { font-size: 16px; font-weight: bold; }
         .list-amount.income { color: #4caf50; }
         .list-amount.expense { color: #e53935; }
         .btn-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; margin-left: 12px; }
         .btn-del:hover { color: #e53935; }
         .empty-list { text-align: center; padding: 40px; color: #bbb; font-size: 14px; }
+
+        /* 통장 연동 안내 */
+        .bank-notice {
+            font-size: 12px; color: #3498db;
+            margin-top: 6px; padding: 6px 10px;
+            background: #e3f2fd; border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -95,7 +107,16 @@
             <div class="input-group"><label>💚 수입 금액</label><input type="number" id="incomeAmount" placeholder="0" min="0"></div>
             <div class="input-group"><label>❤️ 지출 금액</label><input type="number" id="expenseAmount" placeholder="0" min="0"></div>
         </div>
-        <div class="input-memo"><input type="text" id="memoInput" placeholder="메모 입력 (선택)"></div>
+        <div class="input-row" style="margin-top:12px;">
+            <div class="input-group">
+                <label>🏦 통장 선택 <span style="color:#bbb;font-size:11px;">(선택 안 하면 잔고 미반영)</span></label>
+                <select id="bankSelect">
+                    <option value="">-- 통장 선택 안 함 --</option>
+                </select>
+            </div>
+        </div>
+        <div id="bankNotice" class="bank-notice" style="display:none;"></div>
+        <div class="input-memo" style="margin-top:12px;"><input type="text" id="memoInput" placeholder="메모 입력 (선택)"></div>
         <div class="btn-row">
             <button class="btn-income" onclick="addRecord('income')">+ 수입 추가</button>
             <button class="btn-expense" onclick="addRecord('expense')">+ 지출 추가</button>
@@ -110,19 +131,59 @@
 <script type="module">
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { collection, addDoc, deleteDoc, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+        collection, addDoc, deleteDoc, doc,
+        query, where, onSnapshot, getDocs, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     let currentUser = null;
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
     let selectedDate = null;
     let records = [];
+    let banks = []; // 통장 목록
     const today = new Date();
 
     onAuthStateChanged(auth, (user) => {
-        if (!user) { window.location.href = 'inex.html'; return; }
+        if (!user) { window.location.href = 'index.html'; return; }
         currentUser = user;
+        loadBanks();
         loadRecords();
+    });
+
+    // 통장 목록 불러오기
+    async function loadBanks() {
+        const q = query(collection(db, 'banks'), where('uid', '==', currentUser.uid));
+        onSnapshot(q, (snapshot) => {
+            banks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderBankSelect();
+        });
+    }
+
+    // 드롭다운 렌더링
+    function renderBankSelect() {
+        const sel = document.getElementById('bankSelect');
+        const prev = sel.value;
+        sel.innerHTML = '<option value="">-- 통장 선택 안 함 --</option>';
+        banks.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = `${b.name} (${Number(b.amount).toLocaleString('ko-KR')}원)`;
+            sel.appendChild(opt);
+        });
+        if (prev) sel.value = prev;
+    }
+
+    // 통장 선택 시 잔고 안내
+    document.getElementById('bankSelect').addEventListener('change', function() {
+        const notice = document.getElementById('bankNotice');
+        const bank = banks.find(b => b.id === this.value);
+        if (bank) {
+            notice.style.display = 'block';
+            notice.textContent = `🏦 ${bank.name} 현재 잔고: ${Number(bank.amount).toLocaleString('ko-KR')}원`;
+        } else {
+            notice.style.display = 'none';
+        }
     });
 
     function loadRecords() {
@@ -152,7 +213,6 @@
         body.innerHTML = '';
         const firstDay = new Date(currentYear, currentMonth, 1).getDay();
         const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
-
         for (let i = 0; i < firstDay; i++) {
             const e = document.createElement('div'); e.className = 'cal-cell empty'; body.appendChild(e);
         }
@@ -183,14 +243,68 @@
         const amountInput = type === 'income' ? document.getElementById('incomeAmount') : document.getElementById('expenseAmount');
         const amount = parseInt(amountInput.value);
         const memo = document.getElementById('memoInput').value.trim() || (type === 'income' ? '수입' : '지출');
+        const bankId = document.getElementById('bankSelect').value;
+
         if (!amount || amount <= 0) { alert('금액을 입력해주세요!'); return; }
-        await addDoc(collection(db, 'household'), { uid: currentUser.uid, type, amount, memo, date: selectedDate });
+
+        // 지출 시 잔고 부족 체크
+        if (bankId && type === 'expense') {
+            const bank = banks.find(b => b.id === bankId);
+            if (bank && bank.amount < amount) {
+                if (!confirm(`⚠️ ${bank.name} 잔고(${formatMoney(bank.amount)})가 부족해요!\n그래도 등록할까요?`)) return;
+            }
+        }
+
+        const bankName = bankId ? (banks.find(b => b.id === bankId)?.name || '') : '';
+
+        // 가계부 저장
+        await addDoc(collection(db, 'household'), {
+            uid: currentUser.uid,
+            type,
+            amount,
+            memo,
+            date: selectedDate,
+            bankId: bankId || null,
+            bankName: bankName
+        });
+
+        // 통장 잔고 업데이트
+        if (bankId) {
+            const bank = banks.find(b => b.id === bankId);
+            if (bank) {
+                const newAmount = type === 'income'
+                    ? bank.amount + amount
+                    : bank.amount - amount;
+                await updateDoc(doc(db, 'banks', bankId), {
+                    amount: newAmount,
+                    updatedAt: new Date()
+                });
+            }
+        }
+
         amountInput.value = '';
         document.getElementById('memoInput').value = '';
+        document.getElementById('bankSelect').value = '';
+        document.getElementById('bankNotice').style.display = 'none';
     }
 
-    window.deleteRecord = async function(id) {
-        if (!confirm('삭제할까요?')) return;
+    window.deleteRecord = async function(id, bankId, type, amount) {
+        if (!confirm('삭제할까요?\n통장 잔고도 함께 원상복구됩니다.')) return;
+
+        // 통장 잔고 원상복구
+        if (bankId) {
+            const bank = banks.find(b => b.id === bankId);
+            if (bank) {
+                const restored = type === 'income'
+                    ? bank.amount - amount
+                    : bank.amount + amount;
+                await updateDoc(doc(db, 'banks', bankId), {
+                    amount: restored,
+                    updatedAt: new Date()
+                });
+            }
+        }
+
         await deleteDoc(doc(db, 'household', id));
     }
 
@@ -208,11 +322,15 @@
             item.innerHTML = `
                 <div class="list-left">
                     <div>${r.type==='income'?'💚':'❤️'}</div>
-                    <div class="list-info"><div class="list-memo">${r.memo}</div><div class="list-date">${r.date}</div></div>
+                    <div class="list-info">
+                        <div class="list-memo">${r.memo}</div>
+                        <div class="list-date">${r.date}</div>
+                        ${r.bankName ? `<div class="list-bank">🏦 ${r.bankName}</div>` : ''}
+                    </div>
                 </div>
                 <div style="display:flex;align-items:center;">
                     <div class="list-amount ${r.type}">${r.type==='income'?'+':'-'}${formatMoney(r.amount)}</div>
-                    <button class="btn-del" onclick="deleteRecord('${r.id}')">🗑️</button>
+                    <button class="btn-del" onclick="deleteRecord('${r.id}', '${r.bankId||''}', '${r.type}', ${r.amount})">🗑️</button>
                 </div>`;
             listEl.appendChild(item);
         });
