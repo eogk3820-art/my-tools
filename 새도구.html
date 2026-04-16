@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>글자 선명화 도구</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f2f5;
+      color: #2c3e50;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 상단 네비게이션 */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #2c3e50;
+      padding: 14px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 999;
+    }
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .navbar-title {
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .back-btn {
+      padding: 7px 14px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .back-btn:hover { background-color: #45a049; }
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .navbar-user {
+      color: #ccc;
+      font-size: 14px;
+    }
+    .logout-btn {
+      padding: 7px 14px;
+      background-color: #e53935;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .logout-btn:hover { background-color: #c62828; }
+
+    /* 메인 컨텐츠 */
+    .main-content {
+      margin-top: 80px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+
+    /* 업로드 박스 */
+    .upload-container {
+      background-color: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 22px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      color: white;
+    }
+
+    #uploadBtn     { background-color: #4caf50; }
+    #uploadBtn:hover { background-color: #45a049; }
+
+    #runBtn        { background-color: #2196F3; }
+    #runBtn:hover  { background-color: #1976D2; }
+
+    #folderBtn     { background-color: #ff9800; }
+    #folderBtn:hover { background-color: #e65100; }
+
+    #downloadAllBtn { background-color: #9c27b0; display: none; }
+    #downloadAllBtn:hover { background-color: #7b1fa2; }
+
+    #fileInput { display: none; }
+
+    .folder-info {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 16px;
+      min-height: 18px;
+    }
+
+    /* 슬라이더 */
+    .slider-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    input[type=range] {
+      width: 180px;
+      accent-color: #4caf50;
+    }
+
+    /* 결과 그리드 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .card-title {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .card-images {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .card-images div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card-images span {
+      font-size: 12px;
+      color: #888;
+      padding: 6px 0;
+    }
+
+    .card-images img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      max-height: 200px;
+    }
+
+    .card-footer {
+      padding: 10px 14px;
+      text-align: right;
+      border-top: 1px solid #f0f2f5;
+    }
+
+    .save-btn {
+      padding: 8px 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .save-btn:hover { background-color: #45a049; }
+
+    .empty-msg {
+      text-align: center;
+      color: #aaa;
+      font-size: 15px;
+      margin-top: 40px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 네비게이션 -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <a class="back-btn" href="dashboard.html">← 메뉴로</a>
+      <span class="navbar-title">🔍 글자 선명화 도구</span>
+    </div>
+    <div class="navbar-right">
+      <span class="navbar-user" id="welcomeMsg"></span>
+      <button class="logout-btn" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <h1>🔍 글자 선명화 도구</h1>
+
+    <div class="upload-container">
+
+      <!-- 버튼 -->
+      <div class="controls">
+        <button id="uploadBtn">📁 사진 업로드</button>
+        <button id="runBtn">⚡ 선명화 실행</button>
+        <button id="folderBtn">💾 저장 폴더 설정</button>
+        <button id="downloadAllBtn">⬇️ 전체 저장</button>
+      </div>
+
+      <input type="file" id="fileInput" accept="image/*" multiple>
+      <div class="folder-info" id="folderInfo">저장 폴더가 설정되지 않았습니다. (개별 다운로드 가능)</div>
+
+      <!-- 슬라이더 -->
+      <div class="slider-area">
+        <div class="slider-group">
+          <label>대비 (Contrast): <strong id="contrastVal">160</strong>%</label>
+          <input type="range" id="contrastSlider" min="100" max="300" value="160">
+        </div>
+        <div class="slider-group">
+          <label>밝기 (Brightness): <strong id="brightnessVal">110</strong>%</label>
+          <input type="range" id="brightnessSlider" min="50" max="200" value="110">
+        </div>
+        <div class="slider-group">
+          <label>샤프닝 강도: <strong id="sharpenVal">3</strong></label>
+          <input type="range" id="sharpenSlider" min="1" max="10" value="3">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 결과 그리드 -->
+    <div class="grid" id="grid">
+      <p class="empty-msg" id="emptyMsg">사진을 업로드하고 선명화 실행을 눌러보세요 📷</p>
+    </div>
+
+  </div>
+
+  <canvas id="offscreen" style="display:none;"></canvas>
+
+  <script>
+    // 로그인 체크
+    window.addEventListener('DOMContentLoaded', function () {
+      const user = localStorage.getItem('loggedInUser');
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      document.getElementById('welcomeMsg').innerText = `👋 ${user}님`;
+    });
+
+    function logout() {
+      localStorage.removeItem('loggedInUser');
+      window.location.href = 'login.html';
+    }
+
+    const fileInput        = document.getElementById('fileInput');
+    const uploadBtn        = document.getElementById('uploadBtn');
+    const runBtn           = document.getElementById('runBtn');
+    const folderBtn        = document.getElementById('folderBtn');
+    const downloadAllBtn   = document.getElementById('downloadAllBtn');
+    const folderInfo       = document.getElementById('folderInfo');
+    const grid             = document.getElementById('grid');
+    const canvas           = document.getElementById('offscreen');
+    const ctx              = canvas.getContext('2d');
+
+    const contrastSlider   = document.getElementById('contrastSlider');
+    const brightnessSlider = document.getElementById('brightnessSlider');
+    const sharpenSlider    = document.getElementById('sharpenSlider');
+    const contrastVal      = document.getElementById('contrastVal');
+    const brightnessVal    = document.getElementById('brightnessVal');
+    const sharpenVal       = document.getElementById('sharpenVal');
+
+    contrastSlider.oninput   = () => contrastVal.textContent   = contrastSlider.value;
+    brightnessSlider.oninput = () => brightnessVal.textContent = brightnessSlider.value;
+    sharpenSlider.oninput    = () => sharpenVal.textContent    = sharpenSlider.value;
+
+    let uploadedFiles  = [];
+    let folderHandle   = null;
+    let processedBlobs = [];
+
+    uploadBtn.onclick  = () => fileInput.click();
+    fileInput.onchange = () => {
+      uploadedFiles = Array.from(fileInput.files);
+      folderInfo.textContent = uploadedFiles.length > 0
+        ? `📷 ${uploadedFiles.length}장 업로드됨. 선명화 실행을 눌러주세요.`
+        : '저장 폴더가 설정되지 않았습니다.';
+    };
+
+    folderBtn.onclick = async () => {
+      if (!('showDirectoryPicker' in window)) {
+        alert('이 브라우저는 폴더 선택을 지원하지 않습니다.\n개별 다운로드를 이용해주세요.');
+        return;
+      }
+      try {
+        folderHandle = await window.showDirectoryPicker();
+        folderInfo.textContent = `💾 저장 폴더: "${folderHandle.name}" 설정됨`;
+      } catch(e) {
+        folderInfo.textContent = '폴더 선택이 취소되었습니다.';
+      }
+    };
+
+    function applySharpening(imageData, strength) {
+      const w = imageData.width;
+      const h = imageData.height;
+      const src = imageData.data;
+      const output = new Uint8ClampedArray(src);
+      const s = Math.min(strength, 10);
+      const kernel = [
+         0,    -s/4,    0,
+        -s/4, 1 + s,  -s/4,
+         0,    -s/4,    0
+      ];
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          const idx = (y * w + x) * 4;
+          for (let c = 0; c < 3; c++) {
+            let val =
+              kernel[0] * src[((y-1)*w+(x-1))*4+c] +
+              kernel[1] * src[((y-1)*w+ x   )*4+c] +
+              kernel[2] * src[((y-1)*w+(x+1))*4+c] +
+              kernel[3] * src[( y   *w+(x-1))*4+c] +
+              kernel[4] * src[( y   *w+ x   )*4+c] +
+              kernel[5] * src[( y   *w+(x+1))*4+c] +
+              kernel[6] * src[((y+1)*w+(x-1))*4+c] +
+              kernel[7] * src[((y+1)*w+ x   )*4+c] +
+              kernel[8] * src[((y+1)*w+(x+1))*4+c];
+            output[idx + c] = Math.max(0, Math.min(255, val));
+          }
+          output[idx + 3] = src[idx + 3];
+        }
+      }
+      return new ImageData(output, w, h);
+    }
+
+    function processImage(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          canvas.width  = img.width;
+          canvas.height = img.height;
+          const contrast   = contrastSlider.value;
+          const brightness = brightnessSlider.value;
+          ctx.filter = `contrast(${contrast}%) brightness(${brightness}%)`;
+          ctx.drawImage(img, 0, 0);
+          ctx.filter = 'none';
+          const strength = parseFloat(sharpenSlider.value);
+          let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          imageData = applySharpening(imageData, strength);
+          ctx.putImageData(imageData, 0, 0);
+          const resultUrl = canvas.toDataURL('image/png');
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(url);
+            resolve({ name: file.name, resultUrl, blob });
+          }, 'image/png');
+        };
+        img.src = url;
+      });
+    }
+
+    runBtn.onclick = async () => {
+      if (uploadedFiles.length === 0) {
+        alert('먼저 사진을 업로드해주세요!');
+        return;
+      }
+      grid.innerHTML = '';
+      processedBlobs = [];
+
+      for (const file of uploadedFiles) {
+        const { name, resultUrl, blob } = await processImage(file);
+        processedBlobs.push({ name: 'sharp_' + name, blob });
+        const origUrl = URL.createObjectURL(file);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-title">📄 ${name}</div>
+          <div class="card-images">
+            <div>
+              <span>원본</span>
+              <img src="${origUrl}" alt="원본">
+            </div>
+            <div>
+              <span>선명화</span>
+              <img src="${resultUrl}" alt="선명화">
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="save-btn" data-name="sharp_${name}" data-url="${resultUrl}">⬇️ 저장</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+
+      grid.querySelectorAll('.save-btn').forEach(btn => {
+        btn.onclick = () => saveOne(btn.dataset.name, btn.dataset.url);
+      });
+
+      downloadAllBtn.style.display = 'inline-block';
+      folderInfo.textContent = folderHandle
+        ? `💾 저장 폴더: "${folderHandle.name}" — 전체 저장 버튼을 눌러주세요`
+        : `✅ 처리 완료! 개별 저장 또는 전체 저장을 이용하세요.`;
+    };
+
+    async function saveOne(name, dataUrl) {
+      if (folderHandle) {
+        const blob = processedBlobs.find(b => b.name === name)?.blob;
+        if (blob) {
+          const fileHandle = await folderHandle.getFileHandle(name, { create: true });
+          const writable   = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          alert(`✅ "${name}" 저장 완료!`);
+          return;
+        }
+      }
+      const a = document.createElement('a');
+      a.href     = dataUrl;
+      a.download = name;
+      a.click();
+    }
+
+    downloadAllBtn.onclick = async () => {
+      if (folderHandle) {
+        for (const { name, blob } of processedBlobs) {
+          const fileHandle = await folderHandle.getFileHandle(name, { create: true });
+          const writable   = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        }
+        alert(`✅ 전체 ${processedBlobs.length}장 저장 완료!`);
+      } else {
+        for (const { name, blob } of processedBlobs) {
+          const url = URL.createObjectURL(blob);
+          const a   = document.createElement('a');
+          a.href     = url;
+          a.download = name;
+          a.click();
+          await new Promise(r => setTimeout(r, 300));
+          URL.revokeObjectURL(url);
+        }
+      }
+    };
+  </script>
+</body>
+</html>

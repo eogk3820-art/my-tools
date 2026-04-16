@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Extractor - 로그인</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+        }
+        .tab-group {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #999;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            color: #4caf50;
+            border-bottom: 2px solid #4caf50;
+            font-weight: bold;
+            margin-bottom: -2px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 14px;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .message.error {
+            color: #e53935;
+        }
+        .message.success {
+            color: #4caf50;
+        }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>📧 Email Extractor</h1>
+
+    <div class="card">
+        <div class="tab-group">
+            <div class="tab active" id="loginTab" onclick="switchTab('login')">로그인</div>
+            <div class="tab" id="registerTab" onclick="switchTab('register')">회원가입</div>
+        </div>
+
+        <!-- 로그인 폼 -->
+        <div class="form-section active" id="loginForm">
+            <div class="form-group">
+                <label>아이디</label>
+                <input type="text" id="loginId" placeholder="아이디를 입력하세요">
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요">
+            </div>
+            <button class="btn" onclick="login()">로그인</button>
+            <div class="message" id="loginMsg"></div>
+        </div>
+
+        <!-- 회원가입 폼 -->
+        <div class="form-section" id="registerForm">
+            <div class="form-group">
+                <label>아이디</label>
+                <input type="text" id="regId" placeholder="아이디를 입력하세요">
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="regPw" placeholder="비밀번호를 입력하세요">
+            </div>
+            <div class="form-group">
+                <label>비밀번호 확인</label>
+                <input type="password" id="regPwConfirm" placeholder="비밀번호를 다시 입력하세요">
+            </div>
+            <button class="btn" onclick="register()">회원가입</button>
+            <div class="message" id="registerMsg"></div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Extractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/camanjs/4.1.2/caman.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .upload-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 20px;
+        }
+        .file-input-wrapper {
+            border: 2px dashed #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .file-input-wrapper:hover {
+            background-color: #f9fff9;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            display: block;
+            color: #4caf50;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .file-label span {
+            display: block;
+            color: #999;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        #fileName {
+            margin-top: 10px;
+            color: #555;
+            font-size: 14px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            color: white;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #downloadBtn {
+            background-color: #2196F3;
+            display: none;
+        }
+        #downloadBtn:hover {
+            background-color: #1976D2;
+        }
+        #progress-container {
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 20px;
+        }
+        #progress-label {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        #progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #progress-bar-fill {
+            height: 26px;
+            width: 0%;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 26px;
+            color: white;
+            font-size: 14px;
+            transition: width 0.3s ease;
+        }
+        #result-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 650px;
+        }
+        #result-title {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #emailCount {
+            font-size: 13px;
+            color: #888;
+            margin-top: 10px;
+        }
+        .email-edit-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .email-edit-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+        }
+        .email-edit-row input:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+        .delete-btn {
+            padding: 6px 12px;
+            background-color: #e53935;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            flex: none;
+        }
+        .delete-btn:hover {
+            background-color: #c62828;
+        }
+        #noResult {
+            color: #999;
+            font-size: 15px;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<div style="position:fixed; top:0; left:0; width:100%; background-color:#2c3e50; padding:14px 30px; display:flex; justify-content:space-between; align-items:center; z-index:999; box-sizing:border-box;">
+    <div style="display:flex; align-items:center; gap:16px;">
+        <a href="dashboard.html" style="padding:7px 14px; background-color:#4caf50; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px; text-decoration:none;">← 메뉴로</a>
+        <span style="color:white; font-size:18px; font-weight:bold;">📧 이메일 추출기</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px;">
+        <span id="welcomeMsg" style="color:#ccc; font-size:14px;"></span>
+        <button onclick="logout()" style="padding:7px 14px; background-color:#e53935; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px;">로그아웃</button>
+    </div>
+</div>
+
+<!-- 네비게이션 높이만큼 여백 -->
+<div style="height:60px;"></div>
+
+    <h1>📧 Email Extractor</h1>
+
+    <div class="upload-container">
+        <div class="file-input-wrapper" onclick="document.getElementById('imageInput').click()">
+            <label class="file-label">
+                🖼️ 이미지 파일을 선택하세요
+                <span>여러 파일 동시 업로드 가능 (JPG, PNG 등)</span>
+            </label>
+            <input type="file" id="imageInput" accept="image/*" multiple>
+            <div id="fileName">선택된 파일 없음</div>
+        </div>
+        <div class="btn-group">
+            <button onclick="extractEmails()" id="extractBtn">이메일 추출</button>
+            <button onclick="saveToLocal()" style="background-color:#ff9800;">💾 저장</button>
+            <button onclick="clearLocal()" style="background-color:#e53935;">🗑️ 전체 초기화</button>
+            <button id="downloadBtn" onclick="downloadEmails()">📥 텍스트 파일 저장</button>
+        </div>
+    </div>
+
+    <div id="progress-container">
+        <div id="progress-label">진행 상황</div>
+        <div id="progress-bar">
+            <div id="progress-bar-fill">0%</div>
+        </div>
+    </div>
+
+    <div id="result-container">
+        <div id="result-title">추출된 이메일 주소 <span id="emailCount"></span></div>
+        <div id="emailList">
+            <div id="noResult">아직 추출된 이메일이 없습니다.</div>
+        </div>
+    </div>
+
+    <canvas id="imageCanvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.2/dist/tesseract.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
