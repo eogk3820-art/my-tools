@@ -1,4 +1,13 @@
 let emailSet = new Set();
+window.logout = function() {
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js").then(({ signOut }) => {
+        import('./firebase-config.js').then(({ auth }) => {
+            signOut(auth).then(() => {
+                window.location.href = 'login.html';
+            });
+        });
+    });
+}
 
 const commonDomains = [
     'gmail.com', 'naver.com', 'kakao.com', 'daum.net',
