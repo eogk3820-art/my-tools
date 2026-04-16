@@ -16,9 +16,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      visibility: hidden;
     }
 
-    /* 상단 네비게이션 */
     .navbar {
       position: fixed;
       top: 0;
@@ -72,7 +72,6 @@
     }
     .logout-btn:hover { background-color: #c62828; }
 
-    /* 메인 컨텐츠 */
     .main-content {
       margin-top: 80px;
       width: 100%;
@@ -86,7 +85,6 @@
       color: #2c3e50;
     }
 
-    /* 업로드 박스 */
     .upload-container {
       background-color: white;
       border-radius: 12px;
@@ -116,13 +114,10 @@
 
     #uploadBtn     { background-color: #4caf50; }
     #uploadBtn:hover { background-color: #45a049; }
-
     #runBtn        { background-color: #2196F3; }
     #runBtn:hover  { background-color: #1976D2; }
-
     #folderBtn     { background-color: #ff9800; }
     #folderBtn:hover { background-color: #e65100; }
-
     #downloadAllBtn { background-color: #9c27b0; display: none; }
     #downloadAllBtn:hover { background-color: #7b1fa2; }
 
@@ -136,7 +131,6 @@
       min-height: 18px;
     }
 
-    /* 슬라이더 */
     .slider-area {
       display: flex;
       flex-wrap: wrap;
@@ -158,7 +152,6 @@
       accent-color: #4caf50;
     }
 
-    /* 결과 그리드 */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -251,8 +244,6 @@
     <h1>🔍 글자 선명화 도구</h1>
 
     <div class="upload-container">
-
-      <!-- 버튼 -->
       <div class="controls">
         <button id="uploadBtn">📁 사진 업로드</button>
         <button id="runBtn">⚡ 선명화 실행</button>
@@ -263,7 +254,6 @@
       <input type="file" id="fileInput" accept="image/*" multiple>
       <div class="folder-info" id="folderInfo">저장 폴더가 설정되지 않았습니다. (개별 다운로드 가능)</div>
 
-      <!-- 슬라이더 -->
       <div class="slider-area">
         <div class="slider-group">
           <label>대비 (Contrast): <strong id="contrastVal">160</strong>%</label>
@@ -278,34 +268,16 @@
           <input type="range" id="sharpenSlider" min="1" max="10" value="3">
         </div>
       </div>
-
     </div>
 
-    <!-- 결과 그리드 -->
     <div class="grid" id="grid">
       <p class="empty-msg" id="emptyMsg">사진을 업로드하고 선명화 실행을 눌러보세요 📷</p>
     </div>
-
   </div>
 
   <canvas id="offscreen" style="display:none;"></canvas>
 
   <script>
-    // 로그인 체크
-    window.addEventListener('DOMContentLoaded', function () {
-      const user = localStorage.getItem('loggedInUser');
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-      document.getElementById('welcomeMsg').innerText = `👋 ${user}님`;
-    });
-
-    function logout() {
-      localStorage.removeItem('loggedInUser');
-      window.location.href = 'login.html';
-    }
-
     const fileInput        = document.getElementById('fileInput');
     const uploadBtn        = document.getElementById('uploadBtn');
     const runBtn           = document.getElementById('runBtn');
@@ -428,14 +400,8 @@
         card.innerHTML = `
           <div class="card-title">📄 ${name}</div>
           <div class="card-images">
-            <div>
-              <span>원본</span>
-              <img src="${origUrl}" alt="원본">
-            </div>
-            <div>
-              <span>선명화</span>
-              <img src="${resultUrl}" alt="선명화">
-            </div>
+            <div><span>원본</span><img src="${origUrl}" alt="원본"></div>
+            <div><span>선명화</span><img src="${resultUrl}" alt="선명화"></div>
           </div>
           <div class="card-footer">
             <button class="save-btn" data-name="sharp_${name}" data-url="${resultUrl}">⬇️ 저장</button>
@@ -494,5 +460,26 @@
       }
     };
   </script>
+
+  <!-- 로그인 체크 -->
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      document.body.style.visibility = 'visible';
+      document.getElementById('welcomeMsg').textContent = `👋 ${user.email}님`;
+    });
+
+    window.logout = async function() {
+      await signOut(auth);
+      window.location.href = 'login.html';
+    }
+  </script>
+
 </body>
 </html>
