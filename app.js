@@ -1,9 +1,3 @@
-// ✅ 로그아웃
-function logout() {
-    localStorage.removeItem('loggedInUser');
-    window.location.href = 'login.html';
-}
-
 let emailSet = new Set();
 
 const commonDomains = [
@@ -13,12 +7,6 @@ const commonDomains = [
 ];
 
 window.addEventListener('DOMContentLoaded', function () {
-    const user = localStorage.getItem('loggedInUser');
-    if (!user) {
-        window.location.href = 'login.html';
-        return;
-    }
-    document.getElementById('welcomeMsg').innerText = `👋 ${user}님 환영합니다!`;
     document.getElementById('imageInput').addEventListener('change', updateFileName);
     loadFromLocal();
 });
@@ -128,7 +116,6 @@ function correctLocalPart(local) {
         if (char === 'l' || char === 'I') {
             const prevIsNum = prev && /[0-9]/.test(prev);
             const nextIsNum = next && /[0-9]/.test(next);
-
             if (prevIsNum || nextIsNum) {
                 result += '1';
             } else {
@@ -144,13 +131,10 @@ function correctLocalPart(local) {
 function correctEmailMistakes(email) {
     const atIndex = email.indexOf('@');
     if (atIndex === -1) return email;
-
     const localPart = email.substring(0, atIndex);
     const domainPart = email.substring(atIndex + 1);
-
     const correctedLocal = correctLocalPart(localPart);
     const correctedDomain = correctDomain(domainPart);
-
     return correctedLocal + '@' + correctedDomain;
 }
 
