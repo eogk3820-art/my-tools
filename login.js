@@ -1,5 +1,17 @@
+import { auth } from './firebase-config.js';
+import { 
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// 이미 로그인 상태면 dashboard로
+onAuthStateChanged(auth, (user) => {
+    if (user) window.location.href = 'dashboard.html';
+});
+
 // 탭 전환
-function switchTab(tab) {
+window.switchTab = function(tab) {
     document.getElementById('loginForm').classList.remove('active');
     document.getElementById('registerForm').classList.remove('active');
     document.getElementById('loginTab').classList.remove('active');
@@ -15,20 +27,15 @@ function switchTab(tab) {
 }
 
 // 회원가입
-function register() {
-    const id = document.getElementById('regId').value.trim();
+window.register = async function() {
+    const email = document.getElementById('regId').value.trim();
     const pw = document.getElementById('regPw').value;
     const pwConfirm = document.getElementById('regPwConfirm').value;
     const msg = document.getElementById('registerMsg');
 
-    if (!id || !pw || !pwConfirm) {
+    if (!email || !pw || !pwConfirm) {
         msg.className = 'message error';
         msg.innerText = '모든 항목을 입력해주세요.';
-        return;
-    }
-    if (id.length < 4) {
-        msg.className = 'message error';
-        msg.innerText = '아이디는 4자 이상이어야 합니다.';
         return;
     }
     if (pw.length < 6) {
@@ -42,67 +49,56 @@ function register() {
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-
-    if (users[id]) {
+    try {
+        await createUserWithEmailAndPassword(auth, email, pw);
+        msg.className = 'message success';
+        msg.innerText = '회원가입 완료! 로그인해주세요.';
+        setTimeout(() => {
+            document.getElementById('regId').value = '';
+            document.getElementById('regPw').value = '';
+            document.getElementById('regPwConfirm').value = '';
+            msg.innerText = '';
+            switchTab('login');
+        }, 1500);
+    } catch (e) {
         msg.className = 'message error';
-        msg.innerText = '이미 존재하는 아이디입니다.';
-        return;
+        if (e.code === 'auth/email-already-in-use') {
+            msg.innerText = '이미 사용 중인 이메일입니다.';
+        } else if (e.code === 'auth/invalid-email') {
+            msg.innerText = '이메일 형식이 올바르지 않습니다.';
+        } else {
+            msg.innerText = '오류: ' + e.message;
+        }
     }
-
-    users[id] = { password: pw };
-    localStorage.setItem('users', JSON.stringify(users));
-
-    msg.className = 'message success';
-    msg.innerText = '회원가입 완료! 로그인해주세요.';
-
-    setTimeout(() => {
-        document.getElementById('regId').value = '';
-        document.getElementById('regPw').value = '';
-        document.getElementById('regPwConfirm').value = '';
-        msg.innerText = '';
-        switchTab('login');
-    }, 1500);
 }
 
 // 로그인
-function login() {
-    const id = document.getElementById('loginId').value.trim();
+window.login = async function() {
+    const email = document.getElementById('loginId').value.trim();
     const pw = document.getElementById('loginPw').value;
     const msg = document.getElementById('loginMsg');
 
-    if (!id || !pw) {
+    if (!email || !pw) {
         msg.className = 'message error';
-        msg.innerText = '아이디와 비밀번호를 입력해주세요.';
+        msg.innerText = '이메일과 비밀번호를 입력해주세요.';
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-
-    if (!users[id]) {
+    try {
+        await signInWithEmailAndPassword(auth, email, pw);
+        msg.className = 'message success';
+        msg.innerText = '로그인 성공! 이동 중...';
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1000);
+    } catch (e) {
         msg.className = 'message error';
-        msg.innerText = '존재하지 않는 아이디입니다.';
-        return;
+        if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+            msg.innerText = '이메일 또는 비밀번호가 틀렸습니다.';
+        } else if (e.code === 'auth/invalid-email') {
+            msg.innerText = '이메일 형식이 올바르지 않습니다.';
+        } else {
+            msg.innerText = '오류: ' + e.message;
+        }
     }
-
-    if (users[id].password !== pw) {
-        msg.className = 'message error';
-        msg.innerText = '비밀번호가 틀렸습니다.';
-        return;
-    }
-
-    localStorage.setItem('loggedInUser', id);
-    msg.className = 'message success';
-    msg.innerText = '로그인 성공! 이동 중...';
-
-    setTimeout(() => {
-        window.location.href = 'dashboard.html'; // ✅ 여기만 변경
-    }, 1000);
 }
-
-// 페이지 로드 시 이미 로그인 되어있으면 바로 이동
-window.addEventListener('DOMContentLoaded', function () {
-    if (localStorage.getItem('loggedInUser')) {
-        window.location.href = 'dashboard.html'; // ✅ 여기도 변경
-    }
-});

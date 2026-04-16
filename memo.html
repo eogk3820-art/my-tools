@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메모장</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #f0f2f5; font-family: 'Arial', sans-serif; min-height: 100vh; }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 { font-size: 20px; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        #welcomeMsg { font-size: 14px; color: #ccc; }
+        .btn-logout {
+            padding: 7px 16px;
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.1); }
+        .btn-back {
+            padding: 7px 16px;
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.1); }
+
+        .container {
+            max-width: 1100px;
+            margin: 32px auto;
+            padding: 0 16px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            visibility: hidden;
+        }
+
+        /* 왼쪽 - 메모 작성 */
+        .memo-write-box {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            width: 340px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 24px;
+        }
+        .memo-write-box h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+        .memo-write-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+            background: #f9f9f9;
+        }
+        .memo-write-box input:focus { border-color: #4caf50; }
+        .memo-write-box textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: vertical;
+            outline: none;
+            background: #f9f9f9;
+            font-family: 'Arial', sans-serif;
+        }
+        .memo-write-box textarea:focus { border-color: #4caf50; }
+        .btn-save {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-save:hover { background-color: #45a049; }
+        .btn-save:disabled { background-color: #aaa; cursor: not-allowed; }
+
+        /* 오른쪽 - 메모 목록 */
+        .memo-list-box { flex: 1; }
+        .memo-list-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        .memo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .memo-card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            padding-right: 100px;
+        }
+        .memo-card-content {
+            font-size: 14px;
+            color: #555;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .memo-card-date {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 10px;
+        }
+        .memo-card-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-edit {
+            padding: 5px 12px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-edit:hover { background: #1a252f; }
+        .btn-delete {
+            padding: 5px 12px;
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-delete:hover { background: #c62828; }
+
+        .no-memo {
+            text-align: center;
+            color: #bbb;
+            font-size: 15px;
+            padding: 40px 0;
+        }
+
+        /* 수정 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .modal h3 { margin-bottom: 16px; color: #2c3e50; }
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+            background: #f9f9f9;
+            font-family: 'Arial', sans-serif;
+        }
+        .modal textarea { height: 120px; resize: vertical; }
+        .modal-btns { display: flex; gap: 10px; }
+        .btn-modal-save {
+            flex: 1; padding: 11px;
+            background: #4caf50; color: white;
+            border: none; border-radius: 8px;
+            font-size: 15px; font-weight: bold; cursor: pointer;
+        }
+        .btn-modal-cancel {
+            flex: 1; padding: 11px;
+            background: #eee; color: #555;
+            border: none; border-radius: 8px;
+            font-size: 15px; cursor: pointer;
+        }
+
+        /* 반응형 */
+        @media (max-width: 700px) {
+            .container { flex-direction: column; }
+            .memo-write-box { width: 100%; position: static; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <a href="dashboard.html" class="btn-back">← 메뉴로</a>
+        <h1>📝 메모장</h1>
+    </div>
+    <div class="header-right">
+        <span id="welcomeMsg"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+</div>
+
+<div class="container" id="mainContainer">
+
+    <!-- 왼쪽: 메모 작성 -->
+    <div class="memo-write-box">
+        <h3>✏️ 새 메모 작성</h3>
+        <input type="text" id="memoTitle" placeholder="제목">
+        <textarea id="memoContent" placeholder="내용을 입력하세요..."></textarea>
+        <button class="btn-save" id="saveBtn" onclick="saveMemo()">💾 저장</button>
+    </div>
+
+    <!-- 오른쪽: 메모 목록 -->
+    <div class="memo-list-box">
+        <div class="memo-list-title">📋 저장된 메모 <span id="memoCount"></span></div>
+        <div id="memoList"><div class="no-memo">저장된 메모가 없습니다.</div></div>
+    </div>
+</div>
+
+<!-- 수정 모달 -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <h3>✏️ 메모 수정</h3>
+        <input type="text" id="editTitle" placeholder="제목">
+        <textarea id="editContent" placeholder="내용"></textarea>
+        <div class="modal-btns">
+            <button class="btn-modal-cancel" onclick="closeModal()">취소</button>
+            <button class="btn-modal-save" onclick="updateMemo()">저장</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+        collection, addDoc, getDocs, deleteDoc,
+        updateDoc, doc, query, where, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    let currentUser = null;
+    let editingDocId = null;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+        currentUser = user;
+        document.getElementById('welcomeMsg').textContent = `👋 ${user.email}님`;
+        document.getElementById('mainContainer').style.visibility = 'visible';
+        await loadMemos();
+    });
+
+    window.logout = async function () {
+        await signOut(auth);
+        window.location.href = 'index.html';
+    }
+
+    window.saveMemo = async function () {
+        const title = document.getElementById('memoTitle').value.trim();
+        const content = document.getElementById('memoContent').value.trim();
+        const saveBtn = document.getElementById('saveBtn');
+
+        if (!title && !content) {
+            alert('제목 또는 내용을 입력해주세요.');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = '저장 중...';
+
+        try {
+            await addDoc(collection(db, 'memos'), {
+                uid: currentUser.uid,
+                title: title || '(제목 없음)',
+                content: content,
+                createdAt: new Date()
+            });
+
+            document.getElementById('memoTitle').value = '';
+            document.getElementById('memoContent').value = '';
+            await loadMemos();
+        } catch (e) {
+            alert('저장 중 오류가 발생했습니다.');
+            console.error(e);
+        }
+
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 저장';
+    }
+
+    async function loadMemos() {
+        const memoList = document.getElementById('memoList');
+        const memoCount = document.getElementById('memoCount');
+        memoList.innerHTML = '';
+
+        try {
+            const q = query(
+                collection(db, 'memos'),
+                where('uid', '==', currentUser.uid),
+                orderBy('createdAt', 'desc')
+            );
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                memoList.innerHTML = '<div class="no-memo">저장된 메모가 없습니다.</div>';
+                memoCount.textContent = '';
+                return;
+            }
+
+            memoCount.textContent = `(총 ${snapshot.size}개)`;
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const date = data.createdAt?.toDate().toLocaleString('ko-KR') || '';
+
+                const card = document.createElement('div');
+                card.className = 'memo-card';
+                card.innerHTML = `
+                    <div class="memo-card-title">${escapeHtml(data.title)}</div>
+                    <div class="memo-card-content">${escapeHtml(data.content)}</div>
+                    <div class="memo-card-date">${date}</div>
+                    <div class="memo-card-actions">
+                        <button class="btn-edit" onclick="openEdit('${docSnap.id}', \`${escapeHtml(data.title)}\`, \`${escapeHtml(data.content)}\`)">수정</button>
+                        <button class="btn-delete" onclick="deleteMemo('${docSnap.id}')">삭제</button>
+                    </div>
+                `;
+                memoList.appendChild(card);
+            });
+
+        } catch (e) {
+            console.error(e);
+            memoList.innerHTML = '<div class="no-memo">메모를 불러오지 못했습니다.</div>';
+        }
+    }
+
+    window.deleteMemo = async function (id) {
+        if (!confirm('이 메모를 삭제할까요?')) return;
+        await deleteDoc(doc(db, 'memos', id));
+        await loadMemos();
+    }
+
+    window.openEdit = function (id, title, content) {
+        editingDocId = id;
+        document.getElementById('editTitle').value = title;
+        document.getElementById('editContent').value = content;
+        document.getElementById('editModal').classList.add('active');
+    }
+
+    window.closeModal = function () {
+        editingDocId = null;
+        document.getElementById('editModal').classList.remove('active');
+    }
+
+    window.updateMemo = async function () {
+        const title = document.getElementById('editTitle').value.trim();
+        const content = document.getElementById('editContent').value.trim();
+
+        if (!title && !content) {
+            alert('제목 또는 내용을 입력해주세요.');
+            return;
+        }
+
+        await updateDoc(doc(db, 'memos', editingDocId), {
+            title: title || '(제목 없음)',
+            content: content,
+            updatedAt: new Date()
+        });
+
+        closeModal();
+        await loadMemos();
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/`/g, '&#96;');
+    }
+</script>
+</body>
+</html>
