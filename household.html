@@ -43,11 +43,7 @@
         .input-row { display: flex; gap: 16px; flex-wrap: wrap; }
         .input-group { flex: 1; min-width: 200px; }
         .input-group label { font-size: 13px; color: #888; margin-bottom: 6px; display: block; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 10px 14px; border-radius: 8px;
-            border: 1px solid #ddd; background-color: #f9f9f9;
-            color: #2c3e50; font-size: 14px; outline: none;
-        }
+        .input-group input, .input-group select { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background-color: #f9f9f9; color: #2c3e50; font-size: 14px; outline: none; }
         .input-group input:focus, .input-group select:focus { border-color: #4caf50; }
         .input-memo { width: 100%; margin-top: 12px; }
         .input-memo input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background-color: #f9f9f9; color: #2c3e50; font-size: 14px; outline: none; }
@@ -57,13 +53,32 @@
         .btn-income:hover { background-color: #45a049; }
         .btn-expense { flex: 1; padding: 11px; background-color: #e53935; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; }
         .btn-expense:hover { background-color: #c62828; }
+        .bank-notice { font-size: 12px; color: #3498db; margin-top: 6px; padding: 6px 10px; background: #e3f2fd; border-radius: 6px; }
+
+        /* 전체 내역 - 날짜별 그룹 */
         .list-panel { background-color: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); overflow: hidden; }
-        .list-panel h3 { font-size: 16px; padding: 18px 20px; border-bottom: 1px solid #f0f2f5; color: #2c3e50; }
+        .list-panel-header { font-size: 16px; padding: 18px 20px; border-bottom: 1px solid #f0f2f5; color: #2c3e50; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+        .list-filter-btns { display: flex; gap: 8px; }
+        .filter-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid #ddd; background: white; font-size: 12px; cursor: pointer; color: #666; }
+        .filter-btn.active { background: #2c3e50; color: white; border-color: #2c3e50; }
+
+        /* 날짜 그룹 */
+        .date-group { border-bottom: 1px solid #f0f2f5; }
+        .date-group:last-child { border-bottom: none; }
+        .date-group-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 20px; background-color: #f8f9fa;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .date-group-label { font-size: 13px; font-weight: bold; color: #555; }
+        .date-group-summary { font-size: 12px; display: flex; gap: 10px; }
+        .dg-income { color: #4caf50; }
+        .dg-expense { color: #e53935; }
+
         .list-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
         .list-item:last-child { border-bottom: none; }
         .list-left { display: flex; align-items: center; gap: 12px; }
         .list-info .list-memo { font-size: 14px; font-weight: bold; color: #2c3e50; }
-        .list-info .list-date { font-size: 12px; color: #999; margin-top: 2px; }
         .list-info .list-bank { font-size: 12px; color: #3498db; margin-top: 2px; }
         .list-amount { font-size: 16px; font-weight: bold; }
         .list-amount.income { color: #4caf50; }
@@ -72,11 +87,9 @@
         .btn-del:hover { color: #e53935; }
         .empty-list { text-align: center; padding: 40px; color: #bbb; font-size: 14px; }
 
-        /* 통장 연동 안내 */
-        .bank-notice {
-            font-size: 12px; color: #3498db;
-            margin-top: 6px; padding: 6px 10px;
-            background: #e3f2fd; border-radius: 6px;
+        @media (max-width: 600px) {
+            .month-summary { flex-direction: column; }
+            .input-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -102,7 +115,7 @@
         <div class="cal-body" id="calBody"></div>
     </div>
     <div class="input-panel">
-        <h3>📝 <span class="selected-date-label" id="selectedDateLabel">날짜를 선택하세요</span> 내역 추가</h3>
+        <h3>📝 <span class="selected-date-label" id="selectedDateLabel"></span> 내역 추가</h3>
         <div class="input-row">
             <div class="input-group"><label>💚 수입 금액</label><input type="number" id="incomeAmount" placeholder="0" min="0"></div>
             <div class="input-group"><label>❤️ 지출 금액</label><input type="number" id="expenseAmount" placeholder="0" min="0"></div>
@@ -122,8 +135,17 @@
             <button class="btn-expense" onclick="addRecord('expense')">+ 지출 추가</button>
         </div>
     </div>
+
+    <!-- 전체 내역 -->
     <div class="list-panel">
-        <h3>📋 <span id="listDateLabel">전체</span> 내역</h3>
+        <div class="list-panel-header">
+            <span>📋 <span id="listDateLabel">이번 달 전체</span> 내역</span>
+            <div class="list-filter-btns">
+                <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">전체</button>
+                <button class="filter-btn" id="filterIncome" onclick="setFilter('income')">수입</button>
+                <button class="filter-btn" id="filterExpense" onclick="setFilter('expense')">지출</button>
+            </div>
+        </div>
         <div id="recordList"></div>
     </div>
 </div>
@@ -133,7 +155,7 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
         collection, addDoc, deleteDoc, doc,
-        query, where, onSnapshot, getDocs, updateDoc
+        query, where, onSnapshot, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     let currentUser = null;
@@ -141,18 +163,31 @@
     let currentMonth = new Date().getMonth();
     let selectedDate = null;
     let records = [];
-    let banks = []; // 통장 목록
+    let banks = [];
+    let currentFilter = 'all';
     const today = new Date();
+
+    // ✅ 오늘 날짜 자동 선택
+    function initToday() {
+        const y = today.getFullYear();
+        const m = today.getMonth();
+        const d = today.getDate();
+        selectedDate = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        document.getElementById('selectedDateLabel').textContent =
+            `${y}년 ${m+1}월 ${d}일`;
+        document.getElementById('listDateLabel').textContent =
+            `${y}년 ${m+1}월 ${d}일`;
+    }
 
     onAuthStateChanged(auth, (user) => {
         if (!user) { window.location.href = 'index.html'; return; }
         currentUser = user;
+        initToday();
         loadBanks();
         loadRecords();
     });
 
-    // 통장 목록 불러오기
-    async function loadBanks() {
+    function loadBanks() {
         const q = query(collection(db, 'banks'), where('uid', '==', currentUser.uid));
         onSnapshot(q, (snapshot) => {
             banks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -160,7 +195,6 @@
         });
     }
 
-    // 드롭다운 렌더링
     function renderBankSelect() {
         const sel = document.getElementById('bankSelect');
         const prev = sel.value;
@@ -174,7 +208,6 @@
         if (prev) sel.value = prev;
     }
 
-    // 통장 선택 시 잔고 안내
     document.getElementById('bankSelect').addEventListener('change', function() {
         const notice = document.getElementById('bankNotice');
         const bank = banks.find(b => b.id === this.value);
@@ -204,6 +237,8 @@
         if (currentMonth > 11) { currentMonth = 0; currentYear++; }
         if (currentMonth < 0) { currentMonth = 11; currentYear--; }
         selectedDate = null;
+        document.getElementById('selectedDateLabel').textContent = '날짜를 선택하세요';
+        document.getElementById('listDateLabel').textContent = `${currentYear}년 ${currentMonth+1}월 전체`;
         renderCalendar(); renderList(); updateSummary();
     }
 
@@ -238,16 +273,21 @@
         renderCalendar(); renderList();
     }
 
+    window.setFilter = function(f) {
+        currentFilter = f;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.add('active');
+        renderList();
+    }
+
     window.addRecord = async function(type) {
         if (!selectedDate) { alert('날짜를 먼저 선택해주세요!'); return; }
         const amountInput = type === 'income' ? document.getElementById('incomeAmount') : document.getElementById('expenseAmount');
         const amount = parseInt(amountInput.value);
         const memo = document.getElementById('memoInput').value.trim() || (type === 'income' ? '수입' : '지출');
         const bankId = document.getElementById('bankSelect').value;
-
         if (!amount || amount <= 0) { alert('금액을 입력해주세요!'); return; }
 
-        // 지출 시 잔고 부족 체크
         if (bankId && type === 'expense') {
             const bank = banks.find(b => b.id === bankId);
             if (bank && bank.amount < amount) {
@@ -256,29 +296,18 @@
         }
 
         const bankName = bankId ? (banks.find(b => b.id === bankId)?.name || '') : '';
-
-        // 가계부 저장
         await addDoc(collection(db, 'household'), {
-            uid: currentUser.uid,
-            type,
-            amount,
-            memo,
+            uid: currentUser.uid, type, amount, memo,
             date: selectedDate,
             bankId: bankId || null,
             bankName: bankName
         });
 
-        // 통장 잔고 업데이트
         if (bankId) {
             const bank = banks.find(b => b.id === bankId);
             if (bank) {
-                const newAmount = type === 'income'
-                    ? bank.amount + amount
-                    : bank.amount - amount;
-                await updateDoc(doc(db, 'banks', bankId), {
-                    amount: newAmount,
-                    updatedAt: new Date()
-                });
+                const newAmount = type === 'income' ? bank.amount + amount : bank.amount - amount;
+                await updateDoc(doc(db, 'banks', bankId), { amount: newAmount, updatedAt: new Date() });
             }
         }
 
@@ -290,49 +319,85 @@
 
     window.deleteRecord = async function(id, bankId, type, amount) {
         if (!confirm('삭제할까요?\n통장 잔고도 함께 원상복구됩니다.')) return;
-
-        // 통장 잔고 원상복구
         if (bankId) {
             const bank = banks.find(b => b.id === bankId);
             if (bank) {
-                const restored = type === 'income'
-                    ? bank.amount - amount
-                    : bank.amount + amount;
-                await updateDoc(doc(db, 'banks', bankId), {
-                    amount: restored,
-                    updatedAt: new Date()
-                });
+                const restored = type === 'income' ? bank.amount - amount : bank.amount + amount;
+                await updateDoc(doc(db, 'banks', bankId), { amount: restored, updatedAt: new Date() });
             }
         }
-
         await deleteDoc(doc(db, 'household', id));
     }
 
     function renderList() {
         const listEl = document.getElementById('recordList');
         listEl.innerHTML = '';
+
+        // 필터링
         let filtered = selectedDate
             ? records.filter(r => r.date === selectedDate)
             : records.filter(r => r.date && r.date.startsWith(`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`));
-        filtered.sort((a, b) => b.date > a.date ? 1 : -1);
-        if (filtered.length === 0) { listEl.innerHTML = `<div class="empty-list">내역이 없어요 😅</div>`; return; }
+
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(r => r.type === currentFilter);
+        }
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = `<div class="empty-list">내역이 없어요 😅</div>`;
+            return;
+        }
+
+        // ✅ 날짜별 그룹핑
+        const groups = {};
         filtered.forEach(r => {
-            const item = document.createElement('div');
-            item.className = 'list-item';
-            item.innerHTML = `
-                <div class="list-left">
-                    <div>${r.type==='income'?'💚':'❤️'}</div>
-                    <div class="list-info">
-                        <div class="list-memo">${r.memo}</div>
-                        <div class="list-date">${r.date}</div>
-                        ${r.bankName ? `<div class="list-bank">🏦 ${r.bankName}</div>` : ''}
+            if (!groups[r.date]) groups[r.date] = [];
+            groups[r.date].push(r);
+        });
+
+        // 날짜 내림차순 정렬
+        const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+        sortedDates.forEach(date => {
+            const items = groups[date];
+            const inc = items.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
+            const exp = items.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
+
+            // 날짜 헤더
+            const groupEl = document.createElement('div');
+            groupEl.className = 'date-group';
+
+            const [y, m, d] = date.split('-');
+            const dow = ['일','월','화','수','목','금','토'][new Date(date).getDay()];
+            const headerEl = document.createElement('div');
+            headerEl.className = 'date-group-header';
+            headerEl.innerHTML = `
+                <span class="date-group-label">${y}년 ${parseInt(m)}월 ${parseInt(d)}일 (${dow})</span>
+                <span class="date-group-summary">
+                    ${inc > 0 ? `<span class="dg-income">+${formatMoney(inc)}</span>` : ''}
+                    ${exp > 0 ? `<span class="dg-expense">-${formatMoney(exp)}</span>` : ''}
+                </span>`;
+            groupEl.appendChild(headerEl);
+
+            // 항목들
+            items.forEach(r => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-left">
+                        <div>${r.type==='income'?'💚':'❤️'}</div>
+                        <div class="list-info">
+                            <div class="list-memo">${r.memo}</div>
+                            ${r.bankName ? `<div class="list-bank">🏦 ${r.bankName}</div>` : ''}
+                        </div>
                     </div>
-                </div>
-                <div style="display:flex;align-items:center;">
-                    <div class="list-amount ${r.type}">${r.type==='income'?'+':'-'}${formatMoney(r.amount)}</div>
-                    <button class="btn-del" onclick="deleteRecord('${r.id}', '${r.bankId||''}', '${r.type}', ${r.amount})">🗑️</button>
-                </div>`;
-            listEl.appendChild(item);
+                    <div style="display:flex;align-items:center;">
+                        <div class="list-amount ${r.type}">${r.type==='income'?'+':'-'}${formatMoney(r.amount)}</div>
+                        <button class="btn-del" onclick="deleteRecord('${r.id}','${r.bankId||''}','${r.type}',${r.amount})">🗑️</button>
+                    </div>`;
+                groupEl.appendChild(item);
+            });
+
+            listEl.appendChild(groupEl);
         });
     }
 

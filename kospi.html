@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOSPI 시세</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #f0f2f5; font-family: 'Arial', sans-serif; min-height: 100vh; }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header h1 { font-size: 20px; }
+        .btn-back {
+            padding: 7px 16px;
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.1); }
+        .last-update { font-size: 12px; color: #aaa; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+        /* KOSPI 메인 카드 */
+        .kospi-main {
+            background: linear-gradient(135deg, #1a237e, #1565c0);
+            border-radius: 20px;
+            padding: 28px 32px;
+            color: white;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(21,101,192,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .kospi-main .k-label { font-size: 14px; opacity: 0.8; margin-bottom: 6px; }
+        .kospi-main .k-price {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+        .kospi-main .k-change { font-size: 18px; margin-top: 8px; }
+        .kospi-main .k-change.up { color: #ff8a80; }
+        .kospi-main .k-change.down { color: #80cbc4; }
+        .kospi-right { text-align: right; }
+        .kospi-right .k-sub { font-size: 13px; opacity: 0.7; margin-bottom: 4px; }
+        .kospi-right .k-sub-val { font-size: 15px; font-weight: bold; margin-bottom: 10px; }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .refresh-btn:hover { background: rgba(255,255,255,0.25); }
+        .refresh-btn.loading { opacity: 0.6; cursor: not-allowed; }
+
+        /* 지연 안내 */
+        .delay-notice {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #795548;
+            margin-bottom: 24px;
+        }
+
+        /* 섹션 타이틀 */
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 14px;
+        }
+
+        /* 주요 지수 카드 */
+        .index-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .index-card {
+            background: white;
+            border-radius: 14px;
+            padding: 18px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .index-card .ic-name { font-size: 13px; color: #888; margin-bottom: 6px; }
+        .index-card .ic-price { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 4px; }
+        .index-card .ic-change { font-size: 13px; }
+        .ic-change.up { color: #e53935; }
+        .ic-change.down { color: #1565c0; }
+        .ic-change.flat { color: #888; }
+
+        /* 종목 테이블 */
+        .stock-section { background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 28px; }
+        .stock-section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stock-section-header span { font-size: 15px; font-weight: bold; color: #2c3e50; }
+        .tab-btns { display: flex; gap: 6px; }
+        .tab-btn {
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 12px;
+            cursor: pointer;
+            color: #666;
+        }
+        .tab-btn.active { background: #2c3e50; color: white; border-color: #2c3e50; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            padding: 10px 16px;
+            font-size: 12px;
+            color: #999;
+            text-align: right;
+            border-bottom: 1px solid #f0f2f5;
+            background: #fafafa;
+        }
+        th:first-child { text-align: left; }
+        td {
+            padding: 12px 16px;
+            font-size: 14px;
+            text-align: right;
+            border-bottom: 1px solid #f5f5f5;
+            color: #2c3e50;
+        }
+        td:first-child { text-align: left; font-weight: bold; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f9f9f9; }
+        .up { color: #e53935; }
+        .down { color: #1565c0; }
+        .flat { color: #888; }
+
+        /* 스켈레톤 로딩 */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .error-box {
+            background: #ffebee;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #c62828;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .kospi-main { flex-direction: column; }
+            .kospi-right { text-align: left; }
+            .kospi-main .k-price { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <a href="dashboard.html" class="btn-back">← 메뉴로</a>
+        <h1>📈 KOSPI 시세</h1>
+    </div>
+    <span class="last-update" id="lastUpdate">불러오는 중...</span>
+</div>
+
+<div class="container">
+
+    <!-- KOSPI 메인 -->
+    <div class="kospi-main" id="kospiMain">
+        <div>
+            <div class="k-label">KOSPI 지수</div>
+            <div class="k-price" id="kospiPrice"><span class="skeleton" style="width:180px;height:48px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            <div class="k-change" id="kospiChange"></div>
+        </div>
+        <div class="kospi-right">
+            <div class="k-sub">52주 최고</div>
+            <div class="k-sub-val" id="kospi52High">-</div>
+            <div class="k-sub">52주 최저</div>
+            <div class="k-sub-val" id="kospi52Low">-</div>
+            <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">🔄 새로고침</button>
+        </div>
+    </div>
+
+    <!-- 지연 안내 -->
+    <div class="delay-notice">
+        ⚠️ Yahoo Finance 데이터는 <strong>15분 지연 시세</strong>입니다. 실제 매매에 참고하지 마세요.
+    </div>
+
+    <!-- 주요 지수 -->
+    <div class="section-title">🌏 주요 지수</div>
+    <div class="index-grid" id="indexGrid">
+        <div class="index-card"><div class="ic-name">KOSDAQ</div><div class="ic-price skeleton" style="width:80px;height:22px;">&nbsp;</div></div>
+        <div class="index-card"><div class="ic-name">S&P 500</div><div class="ic-price skeleton" style="width:80px;height:22px;">&nbsp;</div></div>
+        <div class="index-card"><div class="ic-name">NASDAQ</div><div class="ic-price skeleton" style="width:80px;height:22px;">&nbsp;</div></div>
+        <div class="index-card"><div class="ic-name">니케이225</div><div class="ic-price skeleton" style="width:80px;height:22px;">&nbsp;</div></div>
+    </div>
+
+    <!-- 종목 테이블 -->
+    <div class="stock-section">
+        <div class="stock-section-header">
+            <span>📊 주요 종목</span>
+            <div class="tab-btns">
+                <button class="tab-btn active" onclick="switchTab('kospi')">KOSPI 대형주</button>
+                <button class="tab-btn" onclick="switchTab('global')">해외 대표주</button>
+            </div>
+        </div>
+        <div id="stockTable"><table><tbody id="stockBody"></tbody></table></div>
+    </div>
+
+</div>
+
+<script>
+    // CORS 우회 프록시
+    const PROXY = 'https://api.allorigins.win/get?url=';
+
+    const KOSPI_STOCKS = [
+        { symbol: '005930.KS', name: '삼성전자' },
+        { symbol: '000660.KS', name: 'SK하이닉스' },
+        { symbol: '005380.KS', name: '현대차' },
+        { symbol: '035420.KS', name: 'NAVER' },
+        { symbol: '051910.KS', name: 'LG화학' },
+        { symbol: '006400.KS', name: '삼성SDI' },
+        { symbol: '035720.KS', name: '카카오' },
+        { symbol: '000270.KS', name: '기아' },
+        { symbol: '068270.KS', name: '셀트리온' },
+        { symbol: '105560.KS', name: 'KB금융' },
+    ];
+
+    const GLOBAL_STOCKS = [
+        { symbol: 'AAPL', name: 'Apple' },
+        { symbol: 'MSFT', name: 'Microsoft' },
+        { symbol: 'GOOGL', name: 'Google' },
+        { symbol: 'AMZN', name: 'Amazon' },
+        { symbol: 'NVDA', name: 'NVIDIA' },
+        { symbol: 'TSLA', name: 'Tesla' },
+        { symbol: 'META', name: 'Meta' },
+        { symbol: 'NFLX', name: 'Netflix' },
+    ];
+
+    const INDICES = [
+        { symbol: '^KQ11', name: 'KOSDAQ' },
+        { symbol: '^GSPC', name: 'S&P 500' },
+        { symbol: '^IXIC', name: 'NASDAQ' },
+        { symbol: '^N225', name: '니케이225' },
+    ];
+
+    let currentTab = 'kospi';
+
+    async function fetchYahoo(symbol) {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+        const proxyUrl = PROXY + encodeURIComponent(url);
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        const parsed = JSON.parse(data.contents);
+        const meta = parsed.chart.result[0].meta;
+        return meta;
+    }
+
+    function formatNum(n, digits = 2) {
+        if (n === undefined || n === null || isNaN(n)) return '-';
+        return Number(n).toLocaleString('ko-KR', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+
+    function changeClass(val) {
+        if (val > 0) return 'up';
+        if (val < 0) return 'down';
+        return 'flat';
+    }
+
+    function changeArrow(val) {
+        if (val > 0) return '▲';
+        if (val < 0) return '▼';
+        return '–';
+    }
+
+    // KOSPI 메인
+    async function loadKospi() {
+        try {
+            const meta = await fetchYahoo('^KS11');
+            const price = meta.regularMarketPrice;
+            const prev = meta.previousClose || meta.chartPreviousClose;
+            const change = price - prev;
+            const changePct = (change / prev) * 100;
+            const cls = changeClass(change);
+
+            document.getElementById('kospiPrice').textContent = formatNum(price, 2);
+            document.getElementById('kospiChange').className = `k-change ${cls}`;
+            document.getElementById('kospiChange').textContent =
+                `${changeArrow(change)} ${Math.abs(change).toFixed(2)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
+            document.getElementById('kospi52High').textContent = formatNum(meta.fiftyTwoWeekHigh, 2);
+            document.getElementById('kospi52Low').textContent = formatNum(meta.fiftyTwoWeekLow, 2);
+        } catch (e) {
+            document.getElementById('kospiPrice').textContent = '오류';
+            document.getElementById('kospiChange').textContent = '데이터를 불러오지 못했습니다.';
+        }
+    }
+
+    // 주요 지수
+    async function loadIndices() {
+        const grid = document.getElementById('indexGrid');
+        grid.innerHTML = '';
+        for (const idx of INDICES) {
+            const card = document.createElement('div');
+            card.className = 'index-card';
+            card.innerHTML = `<div class="ic-name">${idx.name}</div><div class="ic-price">-</div><div class="ic-change">-</div>`;
+            grid.appendChild(card);
+            try {
+                const meta = await fetchYahoo(idx.symbol);
+                const price = meta.regularMarketPrice;
+                const prev = meta.previousClose || meta.chartPreviousClose;
+                const change = price - prev;
+                const changePct = (change / prev) * 100;
+                const cls = changeClass(change);
+                card.querySelector('.ic-price').textContent = formatNum(price, 2);
+                card.querySelector('.ic-change').className = `ic-change ${cls}`;
+                card.querySelector('.ic-change').textContent =
+                    `${changeArrow(change)} ${Math.abs(change).toFixed(2)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
+            } catch {
+                card.querySelector('.ic-price').textContent = '오류';
+            }
+        }
+    }
+
+    // 종목 테이블
+    async function loadStocks(list) {
+        const tbody = document.getElementById('stockBody');
+        tbody.innerHTML = '';
+
+        // 헤더
+        const thead = document.querySelector('table thead') || (() => {
+            const t = document.createElement('thead');
+            document.querySelector('#stockTable table').prepend(t);
+            return t;
+        })();
+        thead.innerHTML = `<tr>
+            <th>종목명</th>
+            <th>현재가</th>
+            <th>전일비</th>
+            <th>등락률</th>
+            <th>거래량</th>
+        </tr>`;
+
+        for (const stock of list) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${stock.name}</td><td colspan="4"><span class="skeleton" style="width:200px;height:16px;">&nbsp;</span></td>`;
+            tbody.appendChild(tr);
+
+            try {
+                const meta = await fetchYahoo(stock.symbol);
+                const price = meta.regularMarketPrice;
+                const prev = meta.previousClose || meta.chartPreviousClose;
+                const change = price - prev;
+                const changePct = (change / prev) * 100;
+                const vol = meta.regularMarketVolume;
+                const cls = changeClass(change);
+                const currency = meta.currency === 'KRW' ? '₩' : '$';
+
+                tr.innerHTML = `
+                    <td>${stock.name}</td>
+                    <td>${currency}${formatNum(price, meta.currency === 'KRW' ? 0 : 2)}</td>
+                    <td class="${cls}">${changeArrow(change)} ${Math.abs(change).toFixed(meta.currency === 'KRW' ? 0 : 2)}</td>
+                    <td class="${cls}">${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%</td>
+                    <td>${vol ? Number(vol).toLocaleString('ko-KR') : '-'}</td>
+                `;
+            } catch {
+                tr.innerHTML = `<td>${stock.name}</td><td colspan="4" style="color:#ccc;text-align:center;">오류</td>`;
+            }
+        }
+    }
+
+    window.switchTab = function(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach((b, i) => {
+            b.classList.toggle('active', (i === 0 && tab === 'kospi') || (i === 1 && tab === 'global'));
+        });
+        loadStocks(tab === 'kospi' ? KOSPI_STOCKS : GLOBAL_STOCKS);
+    }
+
+    async function loadAll() {
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('loading');
+        btn.textContent = '⏳ 불러오는 중...';
+
+        const now = new Date();
+        document.getElementById('lastUpdate').textContent =
+            `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')} (15분 지연)`;
+
+        await Promise.all([
+            loadKospi(),
+            loadIndices(),
+        ]);
+        await loadStocks(currentTab === 'kospi' ? KOSPI_STOCKS : GLOBAL_STOCKS);
+
+        btn.classList.remove('loading');
+        btn.textContent = '🔄 새로고침';
+    }
+
+    // 자동 새로고침 5분마다
+    loadAll();
+    setInterval(loadAll, 5 * 60 * 1000);
+</script>
+</body>
+</html>
