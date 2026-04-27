@@ -51,23 +51,17 @@
             visibility: hidden;
         }
 
-        /* 왼쪽 - 등록 */
-        .write-box {
+        /* 왼쪽 패널 */
+        .left-panel { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 24px; }
+
+        .box {
             background: white;
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            width: 320px;
-            flex-shrink: 0;
-            position: sticky;
-            top: 24px;
         }
-        .write-box h3 {
-            font-size: 16px;
-            color: #2c3e50;
-            margin-bottom: 16px;
-        }
-        .write-box input {
+        .box h3 { font-size: 16px; color: #2c3e50; margin-bottom: 16px; }
+        .box input, .box select {
             width: 100%;
             padding: 12px 16px;
             border: 1px solid #ddd;
@@ -76,8 +70,10 @@
             margin-bottom: 12px;
             outline: none;
             background: #f9f9f9;
+            color: #2c3e50;
         }
-        .write-box input:focus { border-color: #3498db; }
+        .box input:focus, .box select:focus { border-color: #3498db; }
+
         .btn-add {
             width: 100%;
             padding: 12px;
@@ -92,10 +88,41 @@
         .btn-add:hover { background-color: #2980b9; }
         .btn-add:disabled { background-color: #aaa; cursor: not-allowed; }
 
+        /* 이체 버튼 */
+        .btn-transfer {
+            width: 100%;
+            padding: 12px;
+            background-color: #8e44ad;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-transfer:hover { background-color: #7d3c98; }
+        .btn-transfer:disabled { background-color: #aaa; cursor: not-allowed; }
+
+        /* 이체 화살표 */
+        .transfer-arrow {
+            text-align: center;
+            font-size: 22px;
+            margin: 4px 0;
+            color: #8e44ad;
+        }
+        .transfer-preview {
+            background: #f3e5f5;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #6a1b9a;
+            margin-bottom: 12px;
+            display: none;
+        }
+
         /* 오른쪽 - 목록 */
         .list-box { flex: 1; }
 
-        /* 총 잔고 카드 */
         .total-card {
             background: linear-gradient(135deg, #2c3e50, #3498db);
             border-radius: 16px;
@@ -104,23 +131,10 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 16px rgba(52,152,219,0.3);
         }
-        .total-card .total-label {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 8px;
-        }
-        .total-card .total-amount {
-            font-size: 32px;
-            font-weight: bold;
-            letter-spacing: -1px;
-        }
-        .total-card .total-count {
-            font-size: 13px;
-            opacity: 0.7;
-            margin-top: 8px;
-        }
+        .total-card .total-label { font-size: 14px; opacity: 0.8; margin-bottom: 8px; }
+        .total-card .total-amount { font-size: 32px; font-weight: bold; letter-spacing: -1px; }
+        .total-card .total-count { font-size: 13px; opacity: 0.7; margin-top: 8px; }
 
-        /* 통장 카드 */
         .bank-card {
             background: white;
             border-radius: 12px;
@@ -133,27 +147,10 @@
             gap: 12px;
         }
         .bank-info { flex: 1; }
-        .bank-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 4px;
-        }
-        .bank-amount {
-            font-size: 20px;
-            font-weight: bold;
-            color: #3498db;
-        }
-        .bank-date {
-            font-size: 12px;
-            color: #bbb;
-            margin-top: 4px;
-        }
-        .bank-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
+        .bank-name { font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 4px; }
+        .bank-amount { font-size: 20px; font-weight: bold; color: #3498db; }
+        .bank-date { font-size: 12px; color: #bbb; margin-top: 4px; }
+        .bank-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .btn-edit {
             padding: 7px 14px;
             background: #2c3e50;
@@ -175,12 +172,36 @@
         }
         .btn-delete:hover { background: #c62828; }
 
-        .no-data {
-            text-align: center;
-            color: #bbb;
-            font-size: 15px;
-            padding: 40px 0;
+        .no-data { text-align: center; color: #bbb; font-size: 15px; padding: 40px 0; }
+
+        /* 이체 내역 */
+        .transfer-log {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            margin-top: 20px;
         }
+        .transfer-log h3 { font-size: 16px; color: #2c3e50; margin-bottom: 16px; }
+        .log-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 14px;
+        }
+        .log-item:last-child { border-bottom: none; }
+        .log-left { display: flex; flex-direction: column; gap: 3px; }
+        .log-banks { font-weight: bold; color: #2c3e50; }
+        .log-date { font-size: 12px; color: #bbb; }
+        .log-amount { font-weight: bold; color: #8e44ad; font-size: 15px; }
+        .btn-log-del {
+            background: none; border: none;
+            color: #ccc; cursor: pointer; font-size: 14px; margin-left: 8px;
+        }
+        .btn-log-del:hover { color: #e53935; }
+        .no-log { text-align: center; color: #bbb; font-size: 14px; padding: 20px 0; }
 
         /* 수정 모달 */
         .modal-overlay {
@@ -230,7 +251,7 @@
 
         @media (max-width: 700px) {
             .container { flex-direction: column; }
-            .write-box { width: 100%; position: static; }
+            .left-panel { width: 100%; position: static; }
         }
     </style>
 </head>
@@ -249,15 +270,37 @@
 
 <div class="container" id="mainContainer">
 
-    <!-- 왼쪽: 등록 -->
-    <div class="write-box">
-        <h3>➕ 통장 등록</h3>
-        <input type="text" id="bankName" placeholder="은행명 (예: 국민은행)">
-        <input type="number" id="bankAmount" placeholder="잔액 (원)" min="0">
-        <button class="btn-add" id="addBtn" onclick="addBank()">💾 등록</button>
+    <!-- 왼쪽 -->
+    <div class="left-panel">
+
+        <!-- 통장 등록 -->
+        <div class="box">
+            <h3>➕ 통장 등록</h3>
+            <input type="text" id="bankName" placeholder="은행명 (예: 국민은행)">
+            <input type="number" id="bankAmount" placeholder="잔액 (원)" min="0">
+            <button class="btn-add" id="addBtn" onclick="addBank()">💾 등록</button>
+        </div>
+
+        <!-- 계좌 이체 -->
+        <div class="box">
+            <h3>🔄 내 계좌 이체</h3>
+            <label style="font-size:13px;color:#888;margin-bottom:6px;display:block;">출금 계좌</label>
+            <select id="fromBank" onchange="updateTransferPreview()">
+                <option value="">-- 출금 계좌 선택 --</option>
+            </select>
+            <div class="transfer-arrow">↓</div>
+            <label style="font-size:13px;color:#888;margin-bottom:6px;display:block;">입금 계좌</label>
+            <select id="toBank" onchange="updateTransferPreview()">
+                <option value="">-- 입금 계좌 선택 --</option>
+            </select>
+            <input type="number" id="transferAmount" placeholder="이체 금액 (원)" min="0"
+                oninput="updateTransferPreview()" style="margin-top:12px;">
+            <div class="transfer-preview" id="transferPreview"></div>
+            <button class="btn-transfer" onclick="doTransfer()">💸 이체하기</button>
+        </div>
     </div>
 
-    <!-- 오른쪽: 목록 -->
+    <!-- 오른쪽 -->
     <div class="list-box">
 
         <!-- 총 잔고 -->
@@ -269,6 +312,12 @@
 
         <!-- 통장 목록 -->
         <div id="bankList"><div class="no-data">등록된 통장이 없습니다.</div></div>
+
+        <!-- 이체 내역 -->
+        <div class="transfer-log">
+            <h3>📋 이체 내역</h3>
+            <div id="transferLog"><div class="no-log">이체 내역이 없습니다.</div></div>
+        </div>
     </div>
 </div>
 
@@ -290,21 +339,20 @@
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
         collection, addDoc, getDocs, deleteDoc,
-        updateDoc, doc, query, where, orderBy
+        updateDoc, doc, query, where, orderBy, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     let currentUser = null;
     let editingDocId = null;
+    let banks = [];
 
     onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            window.location.href = 'index.html';
-            return;
-        }
+        if (!user) { window.location.href = 'index.html'; return; }
         currentUser = user;
         document.getElementById('welcomeMsg').textContent = `👋 ${user.email}님`;
         document.getElementById('mainContainer').style.visibility = 'visible';
-        await loadBanks();
+        loadBanks();
+        loadTransferLogs();
     });
 
     window.logout = async function () {
@@ -312,90 +360,213 @@
         window.location.href = 'index.html';
     }
 
+    // 통장 실시간 로드
+    function loadBanks() {
+        const q = query(
+            collection(db, 'banks'),
+            where('uid', '==', currentUser.uid),
+            orderBy('updatedAt', 'desc')
+        );
+        onSnapshot(q, (snapshot) => {
+            banks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderBanks();
+            renderTransferSelects();
+        });
+    }
+
+    function renderBanks() {
+        const bankList = document.getElementById('bankList');
+        bankList.innerHTML = '';
+
+        if (banks.length === 0) {
+            bankList.innerHTML = '<div class="no-data">등록된 통장이 없습니다.</div>';
+            document.getElementById('totalAmount').textContent = '0 원';
+            document.getElementById('totalCount').textContent = '등록된 통장 0개';
+            return;
+        }
+
+        let total = 0;
+        banks.forEach((b) => {
+            total += Number(b.amount);
+            const date = b.updatedAt?.toDate().toLocaleString('ko-KR') || '';
+            const card = document.createElement('div');
+            card.className = 'bank-card';
+            card.innerHTML = `
+                <div class="bank-info">
+                    <div class="bank-name">🏦 ${escapeHtml(b.name)}</div>
+                    <div class="bank-amount">${Number(b.amount).toLocaleString('ko-KR')} 원</div>
+                    <div class="bank-date">최근 수정: ${date}</div>
+                </div>
+                <div class="bank-actions">
+                    <button class="btn-edit" onclick="openEdit('${b.id}', '${escapeHtml(b.name)}', ${b.amount})">수정</button>
+                    <button class="btn-delete" onclick="deleteBank('${b.id}')">삭제</button>
+                </div>`;
+            bankList.appendChild(card);
+        });
+
+        document.getElementById('totalAmount').textContent = total.toLocaleString('ko-KR') + ' 원';
+        document.getElementById('totalCount').textContent = `등록된 통장 ${banks.length}개`;
+    }
+
+    // 이체 드롭다운 렌더링
+    function renderTransferSelects() {
+        const fromSel = document.getElementById('fromBank');
+        const toSel = document.getElementById('toBank');
+        const fromVal = fromSel.value;
+        const toVal = toSel.value;
+
+        fromSel.innerHTML = '<option value="">-- 출금 계좌 선택 --</option>';
+        toSel.innerHTML = '<option value="">-- 입금 계좌 선택 --</option>';
+
+        banks.forEach(b => {
+            const opt1 = document.createElement('option');
+            opt1.value = b.id;
+            opt1.textContent = `${b.name} (${Number(b.amount).toLocaleString('ko-KR')}원)`;
+            fromSel.appendChild(opt1);
+
+            const opt2 = opt1.cloneNode(true);
+            toSel.appendChild(opt2);
+        });
+
+        if (fromVal) fromSel.value = fromVal;
+        if (toVal) toSel.value = toVal;
+        updateTransferPreview();
+    }
+
+    // 이체 미리보기
+    window.updateTransferPreview = function () {
+        const fromId = document.getElementById('fromBank').value;
+        const toId = document.getElementById('toBank').value;
+        const amount = parseInt(document.getElementById('transferAmount').value);
+        const preview = document.getElementById('transferPreview');
+
+        if (!fromId || !toId || !amount || amount <= 0 || fromId === toId) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        const from = banks.find(b => b.id === fromId);
+        const to = banks.find(b => b.id === toId);
+        if (!from || !to) { preview.style.display = 'none'; return; }
+
+        preview.style.display = 'block';
+        preview.innerHTML = `
+            🏦 <b>${from.name}</b> ${Number(from.amount).toLocaleString('ko-KR')}원
+            → <b>${Number(from.amount - amount).toLocaleString('ko-KR')}원</b><br>
+            🏦 <b>${to.name}</b> ${Number(to.amount).toLocaleString('ko-KR')}원
+            → <b>${Number(to.amount + amount).toLocaleString('ko-KR')}원</b>
+        `;
+    }
+
+    // 이체 실행
+    window.doTransfer = async function () {
+        const fromId = document.getElementById('fromBank').value;
+        const toId = document.getElementById('toBank').value;
+        const amount = parseInt(document.getElementById('transferAmount').value);
+
+        if (!fromId || !toId) { alert('출금/입금 계좌를 선택해주세요.'); return; }
+        if (fromId === toId) { alert('같은 계좌로는 이체할 수 없어요.'); return; }
+        if (!amount || amount <= 0) { alert('이체 금액을 입력해주세요.'); return; }
+
+        const from = banks.find(b => b.id === fromId);
+        const to = banks.find(b => b.id === toId);
+
+        if (from.amount < amount) {
+            if (!confirm(`⚠️ ${from.name} 잔고(${Number(from.amount).toLocaleString('ko-KR')}원)가 부족해요!\n그래도 이체할까요?`)) return;
+        }
+
+        try {
+            // 잔고 업데이트
+            await updateDoc(doc(db, 'banks', fromId), {
+                amount: from.amount - amount,
+                updatedAt: new Date()
+            });
+            await updateDoc(doc(db, 'banks', toId), {
+                amount: to.amount + amount,
+                updatedAt: new Date()
+            });
+
+            // 이체 내역 저장
+            await addDoc(collection(db, 'transfers'), {
+                uid: currentUser.uid,
+                fromId,
+                fromName: from.name,
+                toId,
+                toName: to.name,
+                amount,
+                createdAt: new Date()
+            });
+
+            document.getElementById('transferAmount').value = '';
+            document.getElementById('fromBank').value = '';
+            document.getElementById('toBank').value = '';
+            document.getElementById('transferPreview').style.display = 'none';
+
+            alert(`✅ ${from.name} → ${to.name} 으로\n${amount.toLocaleString('ko-KR')}원 이체 완료!`);
+        } catch (e) {
+            alert('이체 중 오류가 발생했습니다.');
+            console.error(e);
+        }
+    }
+
+    // 이체 내역 로드
+    function loadTransferLogs() {
+        const q = query(
+            collection(db, 'transfers'),
+            where('uid', '==', currentUser.uid),
+            orderBy('createdAt', 'desc')
+        );
+        onSnapshot(q, (snapshot) => {
+            const logEl = document.getElementById('transferLog');
+            logEl.innerHTML = '';
+            if (snapshot.empty) {
+                logEl.innerHTML = '<div class="no-log">이체 내역이 없습니다.</div>';
+                return;
+            }
+            snapshot.docs.forEach(d => {
+                const data = d.data();
+                const date = data.createdAt?.toDate().toLocaleString('ko-KR') || '';
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `
+                    <div class="log-left">
+                        <div class="log-banks">🏦 ${escapeHtml(data.fromName)} → 🏦 ${escapeHtml(data.toName)}</div>
+                        <div class="log-date">${date}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <div class="log-amount">${Number(data.amount).toLocaleString('ko-KR')} 원</div>
+                        <button class="btn-log-del" onclick="deleteLog('${d.id}')">🗑️</button>
+                    </div>`;
+                logEl.appendChild(item);
+            });
+        });
+    }
+
+    window.deleteLog = async function (id) {
+        if (!confirm('이체 내역을 삭제할까요?\n(통장 잔고는 변경되지 않습니다)')) return;
+        await deleteDoc(doc(db, 'transfers', id));
+    }
+
     window.addBank = async function () {
         const name = document.getElementById('bankName').value.trim();
         const amount = document.getElementById('bankAmount').value.trim();
         const addBtn = document.getElementById('addBtn');
-
         if (!name) { alert('은행명을 입력해주세요.'); return; }
         if (amount === '') { alert('잔액을 입력해주세요.'); return; }
-
-        addBtn.disabled = true;
-        addBtn.textContent = '등록 중...';
-
+        addBtn.disabled = true; addBtn.textContent = '등록 중...';
         try {
             await addDoc(collection(db, 'banks'), {
-                uid: currentUser.uid,
-                name: name,
-                amount: Number(amount),
-                updatedAt: new Date()
+                uid: currentUser.uid, name, amount: Number(amount), updatedAt: new Date()
             });
             document.getElementById('bankName').value = '';
             document.getElementById('bankAmount').value = '';
-            await loadBanks();
-        } catch (e) {
-            alert('등록 중 오류가 발생했습니다.');
-            console.error(e);
-        }
-
-        addBtn.disabled = false;
-        addBtn.textContent = '💾 등록';
-    }
-
-    async function loadBanks() {
-        const bankList = document.getElementById('bankList');
-        bankList.innerHTML = '';
-
-        try {
-            const q = query(
-                collection(db, 'banks'),
-                where('uid', '==', currentUser.uid),
-                orderBy('updatedAt', 'desc')
-            );
-            const snapshot = await getDocs(q);
-
-            if (snapshot.empty) {
-                bankList.innerHTML = '<div class="no-data">등록된 통장이 없습니다.</div>';
-                document.getElementById('totalAmount').textContent = '0 원';
-                document.getElementById('totalCount').textContent = '등록된 통장 0개';
-                return;
-            }
-
-            let total = 0;
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                total += Number(data.amount);
-                const date = data.updatedAt?.toDate().toLocaleString('ko-KR') || '';
-
-                const card = document.createElement('div');
-                card.className = 'bank-card';
-                card.innerHTML = `
-                    <div class="bank-info">
-                        <div class="bank-name">🏦 ${escapeHtml(data.name)}</div>
-                        <div class="bank-amount">${Number(data.amount).toLocaleString('ko-KR')} 원</div>
-                        <div class="bank-date">최근 수정: ${date}</div>
-                    </div>
-                    <div class="bank-actions">
-                        <button class="btn-edit" onclick="openEdit('${docSnap.id}', '${escapeHtml(data.name)}', ${data.amount})">수정</button>
-                        <button class="btn-delete" onclick="deleteBank('${docSnap.id}')">삭제</button>
-                    </div>
-                `;
-                bankList.appendChild(card);
-            });
-
-            document.getElementById('totalAmount').textContent = total.toLocaleString('ko-KR') + ' 원';
-            document.getElementById('totalCount').textContent = `등록된 통장 ${snapshot.size}개`;
-
-        } catch (e) {
-            console.error(e);
-            bankList.innerHTML = '<div class="no-data">데이터를 불러오지 못했습니다.</div>';
-        }
+        } catch (e) { alert('등록 중 오류가 발생했습니다.'); }
+        addBtn.disabled = false; addBtn.textContent = '💾 등록';
     }
 
     window.deleteBank = async function (id) {
         if (!confirm('이 통장을 삭제할까요?')) return;
         await deleteDoc(doc(db, 'banks', id));
-        await loadBanks();
     }
 
     window.openEdit = function (id, name, amount) {
@@ -413,27 +584,18 @@
     window.updateBank = async function () {
         const name = document.getElementById('editBankName').value.trim();
         const amount = document.getElementById('editBankAmount').value.trim();
-
         if (!name) { alert('은행명을 입력해주세요.'); return; }
         if (amount === '') { alert('잔액을 입력해주세요.'); return; }
-
         await updateDoc(doc(db, 'banks', editingDocId), {
-            name: name,
-            amount: Number(amount),
-            updatedAt: new Date()
+            name, amount: Number(amount), updatedAt: new Date()
         });
-
         closeModal();
-        await loadBanks();
     }
 
     function escapeHtml(str) {
         return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 </script>
 </body>
